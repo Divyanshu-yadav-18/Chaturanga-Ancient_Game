@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:chaturang/Components/piece.dart';
 import 'package:chaturang/Components/square.dart';
 import 'package:chaturang/Values/color.dart';
@@ -32,23 +30,109 @@ class _GameBoardState extends State<GameBoard> {
         List.generate(8, (index) => List.generate(8, (index) => null));
 
     //pawn
+    for (int i = 0; i < 8; i++) {
+      newBoard[1][i] = ChaturangPiece(
+        type: ChaturangPieceType.pawn,
+        isWhite: false,
+        imagePath: 'lib/images/b_pawn.png',
+      );
+
+      newBoard[6][i] = ChaturangPiece(
+        type: ChaturangPieceType.pawn,
+        isWhite: true,
+        imagePath: 'lib/images/b_pawn.png',
+      );
+    }
 
     //rook
+    newBoard[0][0] = ChaturangPiece(
+        type: ChaturangPieceType.rook,
+        isWhite: false,
+        imagePath: 'lib/images/b_rook.png');
+
+    newBoard[0][7] = ChaturangPiece(
+        type: ChaturangPieceType.rook,
+        isWhite: false,
+        imagePath: 'lib/images/b_rook.png');
+
+    newBoard[7][0] = ChaturangPiece(
+        type: ChaturangPieceType.rook,
+        isWhite: true,
+        imagePath: 'lib/images/b_rook.png');
+
+    newBoard[7][7] = ChaturangPiece(
+        type: ChaturangPieceType.rook,
+        isWhite: true,
+        imagePath: 'lib/images/b_rook.png');
 
     //horses
+    newBoard[0][1] = ChaturangPiece(
+        type: ChaturangPieceType.horse,
+        isWhite: false,
+        imagePath: 'lib/images/b_horse.png');
+
+    newBoard[0][6] = ChaturangPiece(
+        type: ChaturangPieceType.horse,
+        isWhite: false,
+        imagePath: 'lib/images/b_horse.png');
+
+    newBoard[7][1] = ChaturangPiece(
+        type: ChaturangPieceType.horse,
+        isWhite: true,
+        imagePath: 'lib/images/b_horse.png');
+
+    newBoard[7][6] = ChaturangPiece(
+        type: ChaturangPieceType.horse,
+        isWhite: true,
+        imagePath: 'lib/images/b_horse.png');
 
     //elephant
 
+    newBoard[0][2] = ChaturangPiece(
+        type: ChaturangPieceType.elephant,
+        isWhite: false,
+        imagePath: 'lib/images/b_elephant.png');
+
+    newBoard[0][5] = ChaturangPiece(
+        type: ChaturangPieceType.elephant,
+        isWhite: false,
+        imagePath: 'lib/images/b_elephant.png');
+
+    newBoard[7][2] = ChaturangPiece(
+        type: ChaturangPieceType.elephant,
+        isWhite: true,
+        imagePath: 'lib/images/b_elephant.png');
+
+    newBoard[7][5] = ChaturangPiece(
+        type: ChaturangPieceType.elephant,
+        isWhite: true,
+        imagePath: 'lib/images/b_elephant.png');
     //queen
 
+    newBoard[0][4] = ChaturangPiece(
+        type: ChaturangPieceType.queen,
+        isWhite: false,
+        imagePath: 'lib/images/b_queen.png');
+
+    newBoard[7][3] = ChaturangPiece(
+        type: ChaturangPieceType.queen,
+        isWhite: true,
+        imagePath: 'lib/images/b_queen.png');
     //king
+
+    newBoard[0][3] = ChaturangPiece(
+        type: ChaturangPieceType.king,
+        isWhite: false,
+        imagePath: 'lib/images/b_king.png');
+
+    newBoard[7][4] = ChaturangPiece(
+        type: ChaturangPieceType.king,
+        isWhite: true,
+        imagePath: 'lib/images/b_king.png');
+
+    board = newBoard;
   }
 
-  ChaturangPiece myPawn = ChaturangPiece(
-    type: ChaturangPieceType.pawn,
-    isWhite: true,
-    imagePath: 'lib/images/b_pawn.png',
-  );
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -59,9 +143,12 @@ class _GameBoardState extends State<GameBoard> {
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 8),
           itemBuilder: (context, index) {
+            //get the row and column for this square
+            int row = index ~/ 8;
+            int col = index % 8;
             return Square(
               isWhite: isWhite(index),
-              piece: myPawn,
+              piece: board[row][col],
             );
           }),
     );
