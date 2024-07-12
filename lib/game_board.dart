@@ -16,6 +16,17 @@ class _GameBoardState extends State<GameBoard> {
 
   late List<List<ChaturangPiece?>> board;
 
+  //the currently selected piece on board
+  ChaturangPiece? selectedPiece;
+
+  //row index of selected piece
+
+  int selectedRow = -1;
+
+  //col index of selected piece
+
+  int selectedCol = -1;
+
   @override
   void initState() {
     super.initState();
@@ -133,6 +144,16 @@ class _GameBoardState extends State<GameBoard> {
     board = newBoard;
   }
 
+  void pieceSelected(int row, int col) {
+    setState(() {
+      if (board[row][col] != null) {
+        selectedPiece = board[row][col];
+        selectedRow = row;
+        selectedCol = col;
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -146,9 +167,14 @@ class _GameBoardState extends State<GameBoard> {
             //get the row and column for this square
             int row = index ~/ 8;
             int col = index % 8;
+
+            bool isSelected = selectedRow == row && selectedCol == col;
+
             return Square(
               isWhite: isWhite(index),
               piece: board[row][col],
+              isSelected: isSelected,
+              onTap: () => pieceSelected(row, col),
             );
           }),
     );
