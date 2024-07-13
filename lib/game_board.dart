@@ -27,6 +27,11 @@ class _GameBoardState extends State<GameBoard> {
 
   int selectedCol = -1;
 
+  //list valid move of selected piece
+  //each move is represented as list of row and col
+
+  List<List<int>> validMoves = [];
+
   @override
   void initState() {
     super.initState();
@@ -151,7 +156,17 @@ class _GameBoardState extends State<GameBoard> {
         selectedRow = row;
         selectedCol = col;
       }
+
+      // if a piece is selected, calculate its valid move
+      validMoves =
+          calculateRawValidMoves(selectedRow, selectedCol, selectedPiece);
     });
+  }
+
+  //calculate raw valid moves
+  List<List<int>> calculateRawValidMoves(
+      int row, int col, ChaturangPiece? piece) {
+    List<List<int>> candidateMoves = [];
   }
 
   @override
