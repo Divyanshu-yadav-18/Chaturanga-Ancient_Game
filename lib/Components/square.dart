@@ -7,12 +7,14 @@ class Square extends StatelessWidget {
   final ChaturangPiece? piece;
   final bool isSelected;
   void Function()? onTap;
+  final bool isValidMove;
   Square(
       {super.key,
       required this.isWhite,
       required this.piece,
       required this.isSelected,
-      required this.onTap});
+      required this.onTap,
+      required this.isValidMove});
 
   @override
   Widget build(BuildContext context) {
@@ -20,6 +22,8 @@ class Square extends StatelessWidget {
 
     if (isSelected) {
       squareColor = Colors.amber;
+    } else if (isValidMove) {
+      squareColor = const Color.fromARGB(255, 251, 205, 67);
     } else {
       squareColor = isWhite ? foreGroundColor : backGroundColor;
     }

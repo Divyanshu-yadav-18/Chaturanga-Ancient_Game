@@ -167,6 +167,104 @@ class _GameBoardState extends State<GameBoard> {
   List<List<int>> calculateRawValidMoves(
       int row, int col, ChaturangPiece? piece) {
     List<List<int>> candidateMoves = [];
+
+    //different direction based on their color
+    int direction = piece!.isWhite ? -1 : 1;
+
+    switch (piece.type) {
+      case ChaturangPieceType.pawn:
+        //pawn move one step ahead if square is not occupied
+        if (isInBoard(row + direction, col) &&
+            board[row + direction][col] == null) {
+          candidateMoves.add([row + direction, col]);
+        }
+        //pawn move two step at start
+        if ((row == 1 && !piece.isWhite) || (row == 6 && piece.isWhite)) {
+          if (isInBoard(row + 2 * direction, col) &&
+              (board[row + 2 * direction][col] == null) &&
+              board[row + direction][col] == null) {
+            candidateMoves.add([row + 2 * direction, col]);
+          }
+        }
+
+        //pawn can kill diagonally
+
+        if (isInBoard(row + direction, col - 1) &&
+            board[row + direction][col - 1] != null &&
+            board[row + direction][col - 1]!.isWhite) {
+          candidateMoves.add([row + direction, col - 1]);
+        }
+
+        if (isInBoard(row + direction, col + 1) &&
+            board[row + direction][col + 1] != null &&
+            board[row + direction][col + 1]!.isWhite) {
+          candidateMoves.add([row + direction, col + 1]);
+        }
+
+        break;
+      case ChaturangPieceType.rook:
+        var direction = [
+          [-1, 0],
+          [1, 0],
+          [0, -1],
+          [0, 1]
+        ];
+
+        for (var direct in direction) {
+          var i = 1;
+          while (true) {
+            var newRow = row + i * direct[0];
+            var newCol = col + i * direct[1];
+            if (!isInBoard(newRow, newCol)) {
+              break;
+            }
+            if (board[newRow][newCol] != null) {
+              if (board[newRow][newCol]!.isWhite != piece.isWhite) {
+                candidateMoves.add([newRow, newCol]);
+              }
+              break;
+            }
+            candidateMoves.add([newRow, newCol]);
+            i++;
+          }
+        }
+        break;
+      case ChaturangPieceType.horse:
+        var horseMoves = [
+          [-2, -1],
+          [-2, 1],
+          [-1, -2],
+          [-1, 2],
+          [1, -2],
+          [1, 2],
+          [2, -1],
+          [2, 1],
+        ];
+
+        for (var move in horseMoves) {
+          var newRow = row + move[0];
+          var newCol = row + move[1];
+          if (!isInBoard(newRow, newCol)) {
+            continue;
+          }
+          if (board[newRow][newCol] != null) {
+            if (board[newRow][newCol]!.isWhite != piece.isWhite) {
+              candidateMoves.add([newRow, newCol]); //capture
+            }
+            continue;
+          }
+          candidateMoves.add([newRow, newCol]);
+        }
+        break;
+      case ChaturangPieceType.elephant:
+        break;
+      case ChaturangPieceType.queen:
+        break;
+      case ChaturangPieceType.king:
+        break;
+      default:
+    }
+    return candidateMoves;
   }
 
   @override
@@ -185,10 +283,21 @@ class _GameBoardState extends State<GameBoard> {
 
             bool isSelected = selectedRow == row && selectedCol == col;
 
+            //check isValidMove
+
+            bool isValidMove = false;
+
+            for (var position in validMoves) {
+              if (position[0] == row && position[1] == col) {
+                isValidMove = true;
+              }
+            }
+
             return Square(
               isWhite: isWhite(index),
               piece: board[row][col],
               isSelected: isSelected,
+              isValidMove: isValidMove,
               onTap: () => pieceSelected(row, col),
             );
           }),
