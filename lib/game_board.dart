@@ -150,10 +150,22 @@ class _GameBoardState extends State<GameBoard> {
 
   void pieceSelected(int row, int col) {
     setState(() {
-      if (board[row][col] != null) {
+      //no piece is selected, its the first selestion
+      if (selectedPiece == null && board[row][col] != null) {
         selectedPiece = board[row][col];
         selectedRow = row;
         selectedCol = col;
+      }
+
+      //there's a piece already selectedboard
+      else if (board[row][col] != null &&
+          board[row][col]!.isWhite == selectedPiece!.isWhite) {
+        selectedPiece = board[row][col];
+        selectedRow = row;
+        selectedCol = col;
+      } else if (selectedPiece != null &&
+          validMoves.any((element) => element[0] == row && element[1] == col)) {
+        movePiece(row, col);
       }
 
       // if a piece is selected, calculate its valid move
@@ -166,6 +178,10 @@ class _GameBoardState extends State<GameBoard> {
   List<List<int>> calculateRawValidMoves(
       int row, int col, ChaturangPiece? piece) {
     List<List<int>> candidateMoves = [];
+
+    if (piece == null) {
+      return [];
+    }
 
     //different direction based on their color
     int direction = piece!.isWhite ? -1 : 1;
@@ -331,6 +347,21 @@ class _GameBoardState extends State<GameBoard> {
       default:
     }
     return candidateMoves;
+  }
+
+  //Move piece
+  void movePiece(int newRow, int newCol) {
+    //move the piece and clear the old positions
+    board[newRow][newCol] = selectedPiece;
+    board[selectedRow][selectedCol] = null;
+
+    //clear selection
+    setState(() {
+      selectedPiece = null;
+      selectedCol = -1;
+      selectedRow = -1;
+      validMoves = [];
+    });
   }
 
   @override
