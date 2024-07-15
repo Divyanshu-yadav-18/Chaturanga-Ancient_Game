@@ -45,7 +45,6 @@ class _GameBoardState extends State<GameBoard> {
     List<List<ChaturangPiece?>> newBoard =
         List.generate(8, (index) => List.generate(8, (index) => null));
 
-    //pawn
     for (int i = 0; i < 8; i++) {
       newBoard[1][i] = ChaturangPiece(
         type: ChaturangPieceType.pawn,
@@ -243,7 +242,7 @@ class _GameBoardState extends State<GameBoard> {
 
         for (var move in horseMoves) {
           var newRow = row + move[0];
-          var newCol = row + move[1];
+          var newCol = col + move[1];
           if (!isInBoard(newRow, newCol)) {
             continue;
           }
@@ -257,10 +256,77 @@ class _GameBoardState extends State<GameBoard> {
         }
         break;
       case ChaturangPieceType.elephant:
+        var elephantMoves = [
+          [-2, -2],
+          [-2, 2],
+          [2, -2],
+          [2, 2],
+        ];
+
+        for (var move in elephantMoves) {
+          var newRow = row + move[0];
+          var newCol = col + move[1];
+          if (!isInBoard(newRow, newCol)) {
+            continue;
+          }
+          if (board[newRow][newCol] != null) {
+            if (board[newRow][newCol]!.isWhite != piece.isWhite) {
+              candidateMoves.add([newRow, newCol]); //capture
+            }
+            continue;
+          }
+          candidateMoves.add([newRow, newCol]);
+        }
         break;
       case ChaturangPieceType.queen:
+        var queenMoves = [
+          [1, 1],
+          [-1, 1],
+          [1, -1],
+          [-1, -1]
+        ];
+
+        for (var moves in queenMoves) {
+          var newRow = row + moves[0];
+          var newCol = col + moves[1];
+          if (!isInBoard(newRow, newCol)) {
+            continue;
+          }
+          if (board[newRow][newCol] != null) {
+            if (board[newRow][newCol]!.isWhite != piece.isWhite) {
+              candidateMoves.add([newRow, newCol]);
+            }
+            continue;
+          }
+          candidateMoves.add([newRow, newCol]);
+        }
         break;
       case ChaturangPieceType.king:
+        var kingMoves = [
+          [1, 0],
+          [0, 1],
+          [-1, 0],
+          [0, -1],
+          [1, 1],
+          [-1, 1],
+          [1, -1],
+          [-1, -1]
+        ];
+
+        for (var moves in kingMoves) {
+          var newRow = row + moves[0];
+          var newCol = col + moves[1];
+          if (!isInBoard(newRow, newCol)) {
+            continue;
+          }
+          if (board[newRow][newCol] != null) {
+            if (board[newRow][newCol]!.isWhite != piece.isWhite) {
+              candidateMoves.add([newRow, newCol]);
+            }
+            continue;
+          }
+          candidateMoves.add([newRow, newCol]);
+        }
         break;
       default:
     }
