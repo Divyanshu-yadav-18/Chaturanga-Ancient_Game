@@ -1,3 +1,4 @@
+import 'package:chaturang/Components/dead_piece.dart';
 import 'package:chaturang/Components/piece.dart';
 import 'package:chaturang/Components/square.dart';
 import 'package:chaturang/Values/color.dart';
@@ -31,6 +32,24 @@ class _GameBoardState extends State<GameBoard> {
   //each move is represented as list of row and col
 
   List<List<int>> validMoves = [];
+
+  //list of white piece taken
+
+  List<ChaturangPiece> whitePiceTaken = [];
+
+  //list of black piece taken
+
+  List<ChaturangPiece> blackPieceTaken = [];
+
+  //switch players turn
+  bool isWhiteTurn = true;
+
+  //track of kings position
+
+  List<int> whiteKingPosition = [7, 4];
+  List<int> blackKingPosition = [0, 4];
+
+  bool checkStatus = false;
 
   @override
   void initState() {
@@ -124,7 +143,7 @@ class _GameBoardState extends State<GameBoard> {
         imagePath: 'lib/images/b_elephant.png');
     //queen
 
-    newBoard[0][4] = ChaturangPiece(
+    newBoard[0][3] = ChaturangPiece(
         type: ChaturangPieceType.queen,
         isWhite: false,
         imagePath: 'lib/images/b_queen.png');
@@ -135,7 +154,7 @@ class _GameBoardState extends State<GameBoard> {
         imagePath: 'lib/images/b_queen.png');
     //king
 
-    newBoard[0][3] = ChaturangPiece(
+    newBoard[0][4] = ChaturangPiece(
         type: ChaturangPieceType.king,
         isWhite: false,
         imagePath: 'lib/images/b_king.png');
@@ -152,9 +171,11 @@ class _GameBoardState extends State<GameBoard> {
     setState(() {
       //no piece is selected, its the first selestion
       if (selectedPiece == null && board[row][col] != null) {
-        selectedPiece = board[row][col];
-        selectedRow = row;
-        selectedCol = col;
+        if (board[row][col]!.isWhite == isWhiteTurn) {
+          selectedPiece = board[row][col];
+          selectedRow = row;
+          selectedCol = col;
+        }
       }
 
       //there's a piece already selectedboard
@@ -206,13 +227,13 @@ class _GameBoardState extends State<GameBoard> {
 
         if (isInBoard(row + direction, col - 1) &&
             board[row + direction][col - 1] != null &&
-            board[row + direction][col - 1]!.isWhite) {
+            board[row + direction][col - 1]!.isWhite != piece.isWhite) {
           candidateMoves.add([row + direction, col - 1]);
         }
 
         if (isInBoard(row + direction, col + 1) &&
             board[row + direction][col + 1] != null &&
-            board[row + direction][col + 1]!.isWhite) {
+            board[row + direction][col + 1]!.isWhite != piece.isWhite) {
           candidateMoves.add([row + direction, col + 1]);
         }
 
@@ -351,9 +372,26 @@ class _GameBoardState extends State<GameBoard> {
 
   //Move piece
   void movePiece(int newRow, int newCol) {
+    //if the spot have enemy piece
+    if (board[newRow][newCol] != null) {
+      //add captured piece to the list
+      var capturedPiece = board[newRow][newCol];
+      if (capturedPiece!.isWhite) {
+        whitePiceTaken.add(capturedPiece);
+      } else {
+        blackPieceTaken.add(capturedPiece);
+      }
+    }
+
     //move the piece and clear the old positions
     board[newRow][newCol] = selectedPiece;
     board[selectedRow][selectedCol] = null;
+
+    if (isKingInCheck(!isWhiteTurn)) {
+      checkStatus = true;
+    } else {
+      checkStatus = false;
+    }
 
     //clear selection
     setState(() {
@@ -362,42 +400,110 @@ class _GameBoardState extends State<GameBoard> {
       selectedRow = -1;
       validMoves = [];
     });
+
+    //switch turn
+    isWhiteTurn = !isWhiteTurn;
+  }
+
+  //Is King In Check
+  bool isKingInCheck(bool isWhiteKing) {
+    //get the position of king
+    List<int> kingPosition =
+        isWhiteKing ? whiteKingPosition : blackKingPosition;
+    //check if any enemy piece can attack the king
+    for (int i = 0; i < 8; i++) {
+      for (int j = 0; j < 8; j++) {
+        //skip null square and same color pieces
+        if (board[i][j] == null || board[i][j]!.isWhite == isWhiteKing) {
+          continue;
+        }
+        List<List<int>> pieceValidMoves =
+            calculateRawValidMoves(i, j, board[i][j]);
+
+        //check kings position if in valid move
+        if (pieceValidMoves.any((move) =>
+            move[0] == kingPosition[0] && move[1] == kingPosition[1])) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: backGroundColor,
-      body: GridView.builder(
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: 8 * 8,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 8),
-          itemBuilder: (context, index) {
-            //get the row and column for this square
-            int row = index ~/ 8;
-            int col = index % 8;
+      body: Column(
+        children: [
+          //white pieces taken
+          Expanded(
+            child: GridView.builder(
+              itemCount: whitePiceTaken.length,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 8),
+              itemBuilder: (context, index) => DeadPiece(
+                imagePath: whitePiceTaken[index].imagePath,
+                isWhite: true,
+              ),
+            ),
+          ),
 
-            bool isSelected = selectedRow == row && selectedCol == col;
+          //Check Status
 
-            //check isValidMove
+          Text(checkStatus ? "Check" : ""),
 
-            bool isValidMove = false;
+          Expanded(
+            flex: 3,
+            child: GridView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: 8 * 8,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 8),
+                itemBuilder: (context, index) {
+                  //get the row and column for this square
+                  int row = index ~/ 8;
+                  int col = index % 8;
 
-            for (var position in validMoves) {
-              if (position[0] == row && position[1] == col) {
-                isValidMove = true;
-              }
-            }
+                  bool isSelected = selectedRow == row && selectedCol == col;
 
-            return Square(
-              isWhite: isWhite(index),
-              piece: board[row][col],
-              isSelected: isSelected,
-              isValidMove: isValidMove,
-              onTap: () => pieceSelected(row, col),
-            );
-          }),
+                  //check isValidMove
+
+                  bool isValidMove = false;
+
+                  for (var position in validMoves) {
+                    if (position[0] == row && position[1] == col) {
+                      isValidMove = true;
+                    }
+                  }
+
+                  return Square(
+                    isWhite: isWhite(index),
+                    piece: board[row][col],
+                    isSelected: isSelected,
+                    isValidMove: isValidMove,
+                    onTap: () => pieceSelected(row, col),
+                  );
+                }),
+          ),
+
+          //black pieces taken
+
+          Expanded(
+            child: GridView.builder(
+              itemCount: blackPieceTaken.length,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 8),
+              itemBuilder: (context, index) => DeadPiece(
+                imagePath: blackPieceTaken[index].imagePath,
+                isWhite: false,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
