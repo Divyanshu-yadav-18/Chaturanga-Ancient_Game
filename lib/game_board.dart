@@ -1,5 +1,3 @@
-import 'dart:js_interop';
-
 import 'package:chaturang/Components/dead_piece.dart';
 import 'package:chaturang/Components/piece.dart';
 import 'package:chaturang/Components/square.dart';
