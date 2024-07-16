@@ -1,3 +1,5 @@
+import 'dart:js_interop';
+
 import 'package:chaturang/Components/dead_piece.dart';
 import 'package:chaturang/Components/piece.dart';
 import 'package:chaturang/Components/square.dart';
@@ -190,8 +192,8 @@ class _GameBoardState extends State<GameBoard> {
       }
 
       // if a piece is selected, calculate its valid move
-      validMoves =
-          calculateRawValidMoves(selectedRow, selectedCol, selectedPiece);
+      validMoves = calculateRealValidMoves(
+          selectedRow, selectedCol, selectedPiece, true);
     });
   }
 
@@ -370,6 +372,29 @@ class _GameBoardState extends State<GameBoard> {
     return candidateMoves;
   }
 
+  //Calculate real valid move
+  List<List<int>> calculateRealValidMoves(
+      int row, int col, ChaturangPiece? piece, bool checkSimulation) {
+    List<List<int>> realValidMoves = [];
+    List<List<int>> candidateMoves = calculateRawValidMoves(row, col, piece);
+
+    //after generating all candidate moves,filter out any that would result in check
+    if (checkSimulation) {
+      for (var moves in candidateMoves) {
+        int endRow = moves[0];
+        int endCol = moves[1];
+
+        //simulate future move if its safe
+        if (simulateMoveIsSafe(piece!, row, col, endRow, endCol)) {
+          realValidMoves.add(moves);
+        }
+      }
+    } else {
+      realValidMoves = candidateMoves;
+    }
+    return realValidMoves;
+  }
+
   //Move piece
   void movePiece(int newRow, int newCol) {
     //if the spot have enemy piece
@@ -380,6 +405,16 @@ class _GameBoardState extends State<GameBoard> {
         whitePiceTaken.add(capturedPiece);
       } else {
         blackPieceTaken.add(capturedPiece);
+      }
+    }
+
+    //if moved piece is king
+    if (selectedPiece!.type == ChaturangPieceType.king) {
+      //update the appropriate king pos
+      if (selectedPiece!.isWhite) {
+        whiteKingPosition = [newRow, newCol];
+      } else {
+        blackKingPosition = [newRow, newCol];
       }
     }
 
@@ -418,7 +453,7 @@ class _GameBoardState extends State<GameBoard> {
           continue;
         }
         List<List<int>> pieceValidMoves =
-            calculateRawValidMoves(i, j, board[i][j]);
+            calculateRealValidMoves(i, j, board[i][j], false);
 
         //check kings position if in valid move
         if (pieceValidMoves.any((move) =>
@@ -428,6 +463,50 @@ class _GameBoardState extends State<GameBoard> {
       }
     }
     return false;
+  }
+
+  //simulate the future move to see if its safe
+  bool simulateMoveIsSafe(ChaturangPiece piece, int startRow, int startCol,
+      int endRow, int endCol) {
+    //save current status
+    ChaturangPiece? originalDestinationPiece = board[endRow][endCol];
+
+    //if the piece is king save its position and update
+    List<int>? originalKingPosition;
+    if (piece.type == ChaturangPieceType.king) {
+      originalKingPosition =
+          piece.isWhite ? whiteKingPosition : blackKingPosition;
+
+      //update kings position
+      if (piece.isWhite) {
+        whiteKingPosition = [endRow, endCol];
+      } else {
+        blackKingPosition = [endRow, endCol];
+      }
+    }
+
+    //simulate the move
+    board[endRow][endCol] = piece;
+    board[startRow][startCol] = null;
+
+    //check if our king is under attck
+    bool kingInCheck = isKingInCheck(piece.isWhite);
+
+    //restore board to original state
+    board[startRow][startCol] = piece;
+    board[endRow][endCol] = originalDestinationPiece;
+
+    //if piece was king restore its original position
+    if (piece.type == ChaturangPieceType.king) {
+      if (piece.isWhite) {
+        whiteKingPosition = originalKingPosition!;
+      } else {
+        blackKingPosition = originalKingPosition!;
+      }
+    }
+
+    //if check -> king not safe
+    return !kingInCheck;
   }
 
   @override
