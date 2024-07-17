@@ -567,19 +567,163 @@ class _GameBoardState extends State<GameBoard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        title: const Text(
+          'Chaturang',
+          style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
+        ),
+      ),
       backgroundColor: backGroundColor,
+      drawer: Drawer(
+        backgroundColor: backGroundColor,
+        child: ListView(
+          children: [
+            const SizedBox(
+              height: 40,
+            ),
+            const ListTile(
+              title: Center(
+                child: Icon(
+                  Icons.settings,
+                  size: 60,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 80,
+            ),
+            ListTile(
+              title: const Text(
+                'RuleBook',
+                style: TextStyle(
+                    fontSize: 25,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w500),
+              ),
+              leading: const Icon(
+                Icons.book,
+                size: 40,
+                color: Colors.black,
+              ),
+              onTap: () => showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  backgroundColor: backGroundColor,
+                  title: Column(
+                    children: [
+                      const Text(
+                        '~~Rules~~',
+                        style: TextStyle(
+                            fontSize: 25,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.brown),
+                      ),
+                      Text(
+                        '1.This Game Contains 6 different pieces {pawn, rook, horse, elephant, queen and king}',
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w400,
+                            color: foreGroundColor),
+                      ),
+                      Text(
+                        '2.Pawn, Rook and King functions similar to a popular game Chess',
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w400,
+                            color: foreGroundColor),
+                      ),
+                      Text(
+                        '3.Horses act as Knight in Chess',
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w400,
+                            color: foreGroundColor),
+                      ),
+                      Text(
+                        '4.Elephant jumps over a square diagonally in all directions',
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w400,
+                            color: foreGroundColor),
+                      ),
+                      Text(
+                        '5.Queen only take one step like King but only in diagonal direction',
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w400,
+                            color: foreGroundColor),
+                      ),
+                      Text(
+                        '6.Only way of winning is CheckMate, Draw and stalemate are not option',
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w400,
+                            color: foreGroundColor),
+                      ),
+                      Text(
+                        '7. Pawn promotion is prohabited to make this game more trickier to win',
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w400,
+                            color: foreGroundColor),
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    MaterialButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: Text('done',
+                          style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
+                              color: foreGroundColor)),
+                    )
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 40,
+            ),
+            ListTile(
+              title: const Text(
+                'Reset',
+                style: TextStyle(
+                    fontSize: 25,
+                    color: Colors.black,
+                    fontWeight: FontWeight.w500),
+              ),
+              leading: const Icon(
+                Icons.restore,
+                color: Colors.black,
+                size: 40,
+              ),
+              onTap: () {
+                resetGame();
+              },
+            )
+          ],
+        ),
+      ),
       body: Column(
         children: [
           //white pieces taken
           Expanded(
-            child: GridView.builder(
-              itemCount: whitePiceTaken.length,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 8),
-              itemBuilder: (context, index) => DeadPiece(
-                imagePath: whitePiceTaken[index].imagePath,
-                isWhite: true,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: GridView.builder(
+                itemCount: whitePiceTaken.length,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 8),
+                itemBuilder: (context, index) => DeadPiece(
+                  imagePath: whitePiceTaken[index].imagePath,
+                  isWhite: true,
+                ),
               ),
             ),
           ),
@@ -590,49 +734,55 @@ class _GameBoardState extends State<GameBoard> {
 
           Expanded(
             flex: 3,
-            child: GridView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: 8 * 8,
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 8),
-                itemBuilder: (context, index) {
-                  //get the row and column for this square
-                  int row = index ~/ 8;
-                  int col = index % 8;
+            child: Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: GridView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: 8 * 8,
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 8),
+                  itemBuilder: (context, index) {
+                    //get the row and column for this square
+                    int row = index ~/ 8;
+                    int col = index % 8;
 
-                  bool isSelected = selectedRow == row && selectedCol == col;
+                    bool isSelected = selectedRow == row && selectedCol == col;
 
-                  //check isValidMove
+                    //check isValidMove
 
-                  bool isValidMove = false;
+                    bool isValidMove = false;
 
-                  for (var position in validMoves) {
-                    if (position[0] == row && position[1] == col) {
-                      isValidMove = true;
+                    for (var position in validMoves) {
+                      if (position[0] == row && position[1] == col) {
+                        isValidMove = true;
+                      }
                     }
-                  }
 
-                  return Square(
-                    isWhite: isWhite(index),
-                    piece: board[row][col],
-                    isSelected: isSelected,
-                    isValidMove: isValidMove,
-                    onTap: () => pieceSelected(row, col),
-                  );
-                }),
+                    return Square(
+                      isWhite: isWhite(index),
+                      piece: board[row][col],
+                      isSelected: isSelected,
+                      isValidMove: isValidMove,
+                      onTap: () => pieceSelected(row, col),
+                    );
+                  }),
+            ),
           ),
 
           //black pieces taken
 
           Expanded(
-            child: GridView.builder(
-              itemCount: blackPieceTaken.length,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 8),
-              itemBuilder: (context, index) => DeadPiece(
-                imagePath: blackPieceTaken[index].imagePath,
-                isWhite: false,
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: GridView.builder(
+                itemCount: blackPieceTaken.length,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 8),
+                itemBuilder: (context, index) => DeadPiece(
+                  imagePath: blackPieceTaken[index].imagePath,
+                  isWhite: false,
+                ),
               ),
             ),
           ),
